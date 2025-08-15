@@ -23,12 +23,16 @@
               <input 
                 type="text" 
                 class="form-control" 
+                :class="{ 'is-invalid': v$.name.$error }"
                 id="projectName" 
-                v-model="projectName"
+                v-model="projectData.name"
                 placeholder="Ingresa el nombre del proyecto"
                 required
                 :disabled="projectStore.isLoading"
               >
+              <div v-if="v$.name.$error" class="invalid-feedback">
+                {{ v$.name.$errors[0].$message }}
+              </div>
             </div>
 
             <div class="mb-3">
@@ -38,20 +42,24 @@
               </label>
               <textarea 
                 class="form-control" 
+                :class="{ 'is-invalid': v$.description.$error }"
                 id="description" 
-                v-model="description"
+                v-model="projectData.description"
                 rows="4"
                 placeholder="Describe el proyecto..."
                 required
                 :disabled="projectStore.isLoading"
               ></textarea>
+              <div v-if="v$.description.$error" class="invalid-feedback">
+                {{ v$.description.$errors[0].$message }}
+              </div>
             </div>
             
             <div class="d-flex gap-2">
               <button 
                 type="submit" 
                 class="btn btn-primary"
-                :disabled="projectStore.isLoading"
+                :disabled="projectStore.isLoading || v$.$invalid"
               >
                 <span v-if="projectStore.isLoading" class="spinner-border spinner-border-sm me-2"></span>
                 <i v-else class="fas fa-save me-1"></i>
@@ -69,21 +77,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProjectStore } from '../store/project.js';
+import { useVuelidate } from '@vuelidate/core';
+import { required, minLength } from '@vuelidate/validators';
 
 const router = useRouter();
 const projectStore = useProjectStore();
-const projectName = ref('');
-const description = ref('');
+
+const projectData = reactive({
+  name: '',
+  description: '',
+  status: 'active'
+});
+
+const rules = {
+  name: { required, minLength: minLength(3) },
+  description: { required, minLength: minLength(10) }
+};
+
+const v$ = useVuelidate(rules, projectData);
 
 const handleSubmit = async () => {
+  const isValid = await v$.value.$validate();
+  if (!isValid) return;
+  
   try {
     const payload = {
-      name: projectName.value,
-      description: description.value,
-      status: 'active',
+      ...projectData,
       createdAt: new Date().toISOString()
     };
     

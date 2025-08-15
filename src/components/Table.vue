@@ -9,7 +9,7 @@
         <p class="mt-2 text-muted">Cargando datos...</p>
       </div>
 
-
+      <!-- Table content -->
       <div v-else>
         <div class="table-responsive">
           <table class="table table-hover mb-0">
@@ -31,7 +31,7 @@
               </tr>
             </thead>
             <tbody>
-      
+              <!-- Empty state -->
               <tr v-if="!rows || rows.length === 0">
                 <td :colspan="columns.length + 1" class="text-center py-5">
                   <div class="text-muted">
@@ -53,7 +53,7 @@
                   :key="column.key" 
                   class="px-3 py-3 align-middle"
                 >
-            
+                  <!-- Status badge -->
                   <span 
                     v-if="column.type === 'status'" 
                     :class="getStatusClass(row[column.key])"
@@ -62,17 +62,27 @@
                     {{ row[column.key] }}
                   </span>
                   
-       
+                  <!-- Priority badge -->
+                  <span 
+                    v-else-if="column.type === 'priority'" 
+                    :class="getPriorityClass(row[column.key])"
+                    class="badge"
+                  >
+                    {{ row[column.key] }}
+                  </span>
+                  
+                  <!-- Date formatting -->
                   <span v-else-if="column.type === 'date'">
                     {{ formatDate(row[column.key]) }}
                   </span>
                   
-          
+                  <!-- Default text -->
                   <span v-else class="text-body">
                     {{ row[column.key] }}
                   </span>
                 </td>
-            
+                
+                <!-- Actions column -->
                 <td class="px-3 py-3 text-center align-middle">
                   <div class="btn-group btn-group-sm" role="group">
                     <button 
@@ -130,18 +140,31 @@ const props = defineProps({
 
 const emit = defineEmits(['edit', 'remove']);
 
-
 const getStatusClass = (status) => {
   const statusClasses = {
     'active': 'bg-success text-white',
     'inactive': 'bg-secondary text-white',
     'pending': 'bg-warning text-dark',
+    'pendiente': 'bg-warning text-dark',
+    'en progreso': 'bg-info text-white',
+    'hecho': 'bg-success text-white',
     'completed': 'bg-info text-white',
     'cancelled': 'bg-danger text-white'
   };
   return statusClasses[status?.toLowerCase()] || 'bg-secondary text-white';
 };
 
+const getPriorityClass = (priority) => {
+  const priorityClasses = {
+    'alta': 'bg-danger text-white',
+    'media': 'bg-warning text-dark',
+    'baja': 'bg-success text-white',
+    'high': 'bg-danger text-white',
+    'medium': 'bg-warning text-dark',
+    'low': 'bg-success text-white'
+  };
+  return priorityClasses[priority?.toLowerCase()] || 'bg-secondary text-white';
+};
 
 const formatDate = (date) => {
   if (!date) return '-';
